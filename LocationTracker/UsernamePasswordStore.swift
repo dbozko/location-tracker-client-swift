@@ -17,36 +17,36 @@ struct UsernamePasswordStore {
     // MARK: Save Members
     
     static func saveUsername(username: String) {
-        NSUserDefaults.standardUserDefaults().setValue(username, forKey: usernameKey)
+        UserDefaults.setValue(username, forKey: usernameKey)
         AppState.username = username
     }
     
     static func savePassword(password: String, username: String) {
-        deletePassword(username)
+        deletePassword(username: username)
         //
         let keychainQuery: [NSObject: AnyObject] = [
             kSecClass: kSecClassGenericPassword,
-            kSecAttrService : serviceName,
-            kSecAttrAccount : username,
-            kSecValueData: password.dataUsingEncoding(NSUTF8StringEncoding)!
+            kSecAttrService : serviceName as AnyObject,
+            kSecAttrAccount : username as AnyObject,
+            kSecValueData: password.data(using: String.Encoding.utf8)! as AnyObject
         ]
-        let status: OSStatus = SecItemAdd(keychainQuery, nil)
+        let status: OSStatus = SecItemAdd(keychainQuery as CFDictionary, nil)
         if (status == errSecSuccess) {
             AppState.password = password
         }
     }
     
     static func saveUsernamePassword(username: String, password: String) {
-        self.saveUsername(username)
-        self.savePassword(password, username: username)
+        self.saveUsername(username: username)
+        self.savePassword(password: password, username: username)
     }
     
     // MARK: Load Members
     
     static func loadUsername() -> String? {
         if (AppState.username == nil) {
-            let defaults = NSUserDefaults.standardUserDefaults()
-            AppState.username = defaults.valueForKey(usernameKey) as? String
+            let defaults = UserDefaults.standard
+            AppState.username = defaults.value(forKey: usernameKey) as? String
         }
         return AppState.username;
     }
@@ -56,14 +56,14 @@ struct UsernamePasswordStore {
             // load from keychain
             let keychainQuery: [NSObject: AnyObject] =  [
                 kSecClass : kSecClassGenericPassword,
-                kSecAttrService : serviceName,
-                kSecAttrAccount : username,
+                kSecAttrService : serviceName as AnyObject,
+                kSecAttrAccount : username as AnyObject,
                 kSecReturnData : kCFBooleanTrue,
                 kSecMatchLimit : kSecMatchLimitOne]
             var dataTypeRef: AnyObject?
-            let status = SecItemCopyMatching(keychainQuery, &dataTypeRef)
+            let status = SecItemCopyMatching(keychainQuery as CFDictionary, &dataTypeRef)
             if status == errSecSuccess, let retrievedData = dataTypeRef as! NSData? {
-                AppState.password = NSString(data: retrievedData, encoding: NSUTF8StringEncoding) as? String
+                AppState.password = NSString(data: retrievedData as Data, encoding: String.Encoding.utf8.rawValue) as String?
             }
         }
         return AppState.password
@@ -73,23 +73,23 @@ struct UsernamePasswordStore {
     
     static func deleteUsernamePassword() {
         if (AppState.username != nil) {
-            deletePassword(AppState.username!)
+            deletePassword(username: AppState.username!)
         }
         deleteUsername()
     }
     
     static func deleteUsername() {
-        NSUserDefaults.standardUserDefaults().setValue(nil, forKey: usernameKey)
+        UserDefaults.standard.setValue(nil, forKey: usernameKey)
         AppState.username = nil
     }
     
     static func deletePassword(username: String) {
         let keychainQuery: [NSObject: AnyObject] =  [
             kSecClass: kSecClassGenericPassword,
-            kSecAttrService: serviceName,
-            kSecAttrAccount: username,
+            kSecAttrService: serviceName as AnyObject,
+            kSecAttrAccount: username as AnyObject,
             kSecReturnData: kCFBooleanTrue,
             kSecMatchLimit: kSecMatchLimitOne]
-        SecItemDelete(keychainQuery)
+        SecItemDelete(keychainQuery as CFDictionary)
     }
 }

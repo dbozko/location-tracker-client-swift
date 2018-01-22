@@ -21,12 +21,12 @@ class LocationMonitor: NSObject, CLLocationManagerDelegate {
     var lastLocationTime: Double?
     
     func startIfGrantedByUser() {
-        self.initLocationManager(true)
+        self.initLocationManager(silently: true)
     }
     
     func initLocationManager(silently: Bool) {
-        let locationServicesAuthorized = (CLLocationManager.authorizationStatus() == CLAuthorizationStatus.AuthorizedWhenInUse
-            || CLLocationManager.authorizationStatus() == CLAuthorizationStatus.AuthorizedAlways);
+        let locationServicesAuthorized = (CLLocationManager.authorizationStatus() == CLAuthorizationStatus.authorizedWhenInUse
+            || CLLocationManager.authorizationStatus() == CLAuthorizationStatus.authorizedAlways);
         let locationServicesEnabled = CLLocationManager.locationServicesEnabled();
         if (silently && (locationServicesEnabled == false || locationServicesAuthorized == false)) {
             return;
@@ -38,7 +38,7 @@ class LocationMonitor: NSObject, CLLocationManagerDelegate {
             self.locationManager?.distanceFilter = AppConstants.minMetersBetweenLocations
             self.locationManager?.pausesLocationUpdatesAutomatically = false
             if (locationServicesAuthorized) {
-                if (CLLocationManager.authorizationStatus() == CLAuthorizationStatus.AuthorizedWhenInUse) {
+                if (CLLocationManager.authorizationStatus() == CLAuthorizationStatus.authorizedWhenInUse) {
                     self.locationManager?.requestWhenInUseAuthorization()
                 }
                 else {
@@ -69,7 +69,7 @@ class LocationMonitor: NSObject, CLLocationManagerDelegate {
     }
     
     func addDelegate(delegate:LocationMonitorDelegate) -> (locationManagerEnabled:Bool, lastLocation:CLLocation?) {
-        return self.addDelegate(delegate, silently:false);
+        return self.addDelegate(delegate: delegate, silently:false);
     }
 
     func addDelegate(delegate:LocationMonitorDelegate, silently: Bool) -> (locationManagerEnabled:Bool, lastLocation:CLLocation?) {
@@ -80,7 +80,7 @@ class LocationMonitor: NSObject, CLLocationManagerDelegate {
             }
         }
         self.delegates.append(delegate)
-        self.initLocationManager(silently)
+        self.initLocationManager(silently: silently)
         self.locationManagerEnabledFiredSinceDelegate = false;
         if (self.locationManager != nil) {
             self.startMonitoringLocations()
@@ -90,14 +90,14 @@ class LocationMonitor: NSObject, CLLocationManagerDelegate {
     
     func removeDelegate(delegate:LocationMonitorDelegate) {
         var match: Int? = nil
-        for (index,d) in self.delegates.enumerate() {
+        for (index,d) in self.delegates.enumerated() {
             if ((d as? NSObject) == (delegate as? NSObject)) {
                 match = index
                 break
             }
         }
         if (match != nil) {
-            self.delegates.removeAtIndex(match!)
+            self.delegates.remove(at: match!)
         }
         if (delegates.count == 0 && self.locationManager != nil) {
             // no more delegates subscribed to location
@@ -112,7 +112,7 @@ class LocationMonitor: NSObject, CLLocationManagerDelegate {
 
     func notifyUpdatedLocation(location:CLLocation, inBackground: Bool) {
         for delegate:LocationMonitorDelegate in self.delegates {
-            delegate.locationUpdated(location, inBackground:inBackground)
+            delegate.locationUpdated(location: location, inBackground:inBackground)
         }
     }
 
@@ -133,7 +133,7 @@ class LocationMonitor: NSObject, CLLocationManagerDelegate {
             // reset last location
             self.lastLocation = nil
             self.lastLocationTime = nil
-            if (UIApplication.sharedApplication().applicationState == UIApplicationState.Background) {
+            if (UIApplication.shared.applicationState == UIApplicationState.background) {
                 // if running in the background then monitor significant location changes only
                 // Apple only allows certain types of applications to monitor all locations
                 // while running the background (i.e. GPS, Fitness, etc.)
@@ -171,20 +171,20 @@ class LocationMonitor: NSObject, CLLocationManagerDelegate {
         }
         let newLocation : CLLocation? = locations.last;
         if (newLocation != nil) {
-            if (UIApplication.sharedApplication().applicationState == UIApplicationState.Background || UIApplication.sharedApplication().applicationState == UIApplicationState.Inactive) {
+            if (UIApplication.shared.applicationState == UIApplicationState.background || UIApplication.shared.applicationState == UIApplicationState.inactive) {
                 // if we are in the background then just take the first location sent to us
                 // this means the significant update service either sent us a message
                 // while we were paused (UIApplicationStateInactive)
                 // or the app was shutdown (UIApplicationStateBackground)
-                if (newLocation?.horizontalAccuracy >= 0 && newLocation?.horizontalAccuracy <= AppConstants.minMetersLocationAccuracyBackground) {
-                    self.processLocation(newLocation!, inBackground: true)
+                if ((newLocation?.horizontalAccuracy)! >= 0 && (newLocation?.horizontalAccuracy)! <= AppConstants.minMetersLocationAccuracyBackground) {
+                    self.processLocation(location: newLocation!, inBackground: true)
                 }
             }
             else {
                 // app is in the foreground
-                if (newLocation?.horizontalAccuracy >= 0 && newLocation?.horizontalAccuracy <= AppConstants.minMetersLocationAccuracy) {
+                if ((newLocation?.horizontalAccuracy)! >= 0 && (newLocation?.horizontalAccuracy)! <= AppConstants.minMetersLocationAccuracy) {
                     // process location if within desired accuracy
-                    self.processLocation(newLocation!, inBackground: false)
+                    self.processLocation(location: newLocation!, inBackground: false)
                 }
             }
         }
@@ -197,7 +197,7 @@ class LocationMonitor: NSObject, CLLocationManagerDelegate {
         }
         else {
             let secondsPassed = (NSDate().timeIntervalSince1970 - lastLocationTime!)
-            let distance = location.distanceFromLocation(lastLocation!)
+            let distance = location.distance(from: lastLocation!)
             let minDistance = (inBackground ? AppConstants.minMetersBetweenLocationsBackground : AppConstants.minMetersBetweenLocations)
             if (distance >= minDistance && secondsPassed > AppConstants.minSecondsBetweenLocations) {
                 process = true
@@ -206,7 +206,7 @@ class LocationMonitor: NSObject, CLLocationManagerDelegate {
         if (process) {
             self.lastLocation = location;
             self.lastLocationTime = NSDate().timeIntervalSince1970
-            self.notifyUpdatedLocation(self.lastLocation!, inBackground: inBackground);
+            self.notifyUpdatedLocation(location: self.lastLocation!, inBackground: inBackground);
         }
     }
     
@@ -227,7 +227,7 @@ class LocationMonitor: NSObject, CLLocationManagerDelegate {
             self.startMonitoringLocations()
         }
         else if (self.delegates.count > 0) {
-            self.initLocationManager(true)
+            self.initLocationManager(silently: true)
         }
     }
 

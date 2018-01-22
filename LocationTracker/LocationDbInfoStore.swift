@@ -19,47 +19,47 @@ struct LocationDbInfoStore {
     // MARK: Save Members
     
     static func saveApiKey(apiKey: String) {
-        NSUserDefaults.standardUserDefaults().setValue(apiKey, forKey: apiKeyKey)
+        UserDefaults.standard.setValue(apiKey, forKey: apiKeyKey)
         AppState.locationDbApiKey = apiKey
     }
     
     static func saveApiPassword(apiPassword: String, apiKey: String) {
-        deleteApiPassword(apiKey)
+        deleteApiPassword(apiKey: apiKey)
         //
         let keychainQuery: [NSObject: AnyObject] = [
             kSecClass: kSecClassGenericPassword,
-            kSecAttrService : serviceName,
-            kSecAttrAccount : apiKey,
-            kSecValueData: apiPassword.dataUsingEncoding(NSUTF8StringEncoding)!
+            kSecAttrService : serviceName as AnyObject,
+            kSecAttrAccount : apiKey as AnyObject,
+            kSecValueData: apiPassword.data(using: String.Encoding.utf8)! as AnyObject
         ]
-        let status: OSStatus = SecItemAdd(keychainQuery, nil)
+        let status: OSStatus = SecItemAdd(keychainQuery as CFDictionary, nil)
         if (status == errSecSuccess) {
             AppState.locationDbApiPassword = apiPassword
         }
     }
     
     static func saveDbName(dbName: String) {
-        NSUserDefaults.standardUserDefaults().setValue(dbName, forKey: dbNameKey)
+        UserDefaults.standard.setValue(dbName, forKey: dbNameKey)
         AppState.locationDbName = dbName
     }
     
     static func saveDbHost(dbHost: String) {
-        NSUserDefaults.standardUserDefaults().setValue(dbHost, forKey: dbHostKey)
+        UserDefaults.standard.setValue(dbHost, forKey: dbHostKey)
         AppState.locationDbHost = dbHost
     }
     
     static func saveDbHostProtocol(dbHostProtocol: String) {
-        NSUserDefaults.standardUserDefaults().setValue(dbHostProtocol, forKey: dbHostProtocolKey)
+        UserDefaults.standard.setValue(dbHostProtocol, forKey: dbHostProtocolKey)
         AppState.locationDbHostProtocol = dbHostProtocol
     }
     
     static func saveApiKeyPasswordDbNameHost(apiKey: String, apiPassword: String, dbName: String, dbHost: String, dbHostProtocol: String?) {
-        self.saveApiKey(apiKey)
-        self.saveApiPassword(apiPassword, apiKey: apiKey)
-        self.saveDbName(dbName)
-        self.saveDbHost(dbHost)
+        self.saveApiKey(apiKey: apiKey)
+        self.saveApiPassword(apiPassword: apiPassword, apiKey: apiKey)
+        self.saveDbName(dbName: dbName)
+        self.saveDbHost(dbHost: dbHost)
         if (dbHostProtocol != nil) {
-            self.saveDbHostProtocol(dbHostProtocol!)
+            self.saveDbHostProtocol(dbHostProtocol: dbHostProtocol!)
         }
         else {
             self.deleteDbHostProtocol()
@@ -70,8 +70,8 @@ struct LocationDbInfoStore {
     
     static func loadApiKey() -> String? {
         if (AppState.locationDbApiKey == nil) {
-            let defaults = NSUserDefaults.standardUserDefaults()
-            AppState.locationDbApiKey = defaults.valueForKey(apiKeyKey) as? String
+            let defaults = UserDefaults.standard
+            AppState.locationDbApiKey = defaults.value(forKey: apiKeyKey) as? String
         }
         return AppState.locationDbApiKey;
     }
@@ -81,14 +81,14 @@ struct LocationDbInfoStore {
             // load from keychain
             let keychainQuery: [NSObject: AnyObject] =  [
                 kSecClass : kSecClassGenericPassword,
-                kSecAttrService : serviceName,
-                kSecAttrAccount : apiKey,
+                kSecAttrService : serviceName as AnyObject,
+                kSecAttrAccount : apiKey as AnyObject,
                 kSecReturnData : kCFBooleanTrue,
                 kSecMatchLimit : kSecMatchLimitOne]
             var dataTypeRef: AnyObject?
-            let status = SecItemCopyMatching(keychainQuery, &dataTypeRef)
+            let status = SecItemCopyMatching(keychainQuery as CFDictionary, &dataTypeRef)
             if status == errSecSuccess, let retrievedData = dataTypeRef as! NSData? {
-                AppState.locationDbApiPassword = NSString(data: retrievedData, encoding: NSUTF8StringEncoding) as? String
+                AppState.locationDbApiPassword = NSString(data: retrievedData as Data, encoding: String.Encoding.utf8.rawValue) as String?
             }
         }
         return AppState.locationDbApiPassword
@@ -96,24 +96,24 @@ struct LocationDbInfoStore {
     
     static func loadDbName() -> String? {
         if (AppState.locationDbName == nil) {
-            let defaults = NSUserDefaults.standardUserDefaults()
-            AppState.locationDbName = defaults.valueForKey(dbNameKey) as? String
+            let defaults = UserDefaults.standard
+            AppState.locationDbName = defaults.value(forKey: dbNameKey) as? String
         }
         return AppState.locationDbName;
     }
     
     static func loadDbHost() -> String? {
         if (AppState.locationDbHost == nil) {
-            let defaults = NSUserDefaults.standardUserDefaults()
-            AppState.locationDbHost = defaults.valueForKey(dbHostKey) as? String
+            let defaults = UserDefaults.standard
+            AppState.locationDbHost = defaults.value(forKey: dbHostKey) as? String
         }
         return AppState.locationDbHost;
     }
     
     static func loadDbHostProtocol() -> String? {
         if (AppState.locationDbHostProtocol == nil) {
-            let defaults = NSUserDefaults.standardUserDefaults()
-            AppState.locationDbHostProtocol = defaults.valueForKey(dbHostProtocolKey) as? String
+            let defaults = UserDefaults.standard
+            AppState.locationDbHostProtocol = defaults.value(forKey: dbHostProtocolKey) as? String
         }
         return AppState.locationDbHostProtocol;
     }
@@ -125,37 +125,37 @@ struct LocationDbInfoStore {
         deleteDbHost()
         deleteDbName()
         if (AppState.locationDbApiKey != nil) {
-            deleteApiPassword(AppState.locationDbApiKey!)
+            deleteApiPassword(apiKey: AppState.locationDbApiKey!)
         }
         deleteApiKey()
     }
     
     static func deleteApiKey() {
-        NSUserDefaults.standardUserDefaults().setValue(nil, forKey: apiKeyKey)
+        UserDefaults.standard.setValue(nil, forKey: apiKeyKey)
         AppState.locationDbApiKey = nil
     }
     
     static func deleteApiPassword(apiKey: String) -> Bool {
         let keychainQuery: [NSObject: AnyObject] =  [
             kSecClass: kSecClassGenericPassword,
-            kSecAttrService: serviceName,
-            kSecAttrAccount: apiKey]
-        let status = SecItemDelete(keychainQuery)
+            kSecAttrService: serviceName as AnyObject,
+            kSecAttrAccount: apiKey as AnyObject]
+        let status = SecItemDelete(keychainQuery as CFDictionary)
         return (status == errSecSuccess)
     }
     
     static func deleteDbName() {
-        NSUserDefaults.standardUserDefaults().setValue(nil, forKey: dbNameKey)
+        UserDefaults.standard.setValue(nil, forKey: dbNameKey)
         AppState.locationDbName = nil
     }
     
     static func deleteDbHost() {
-        NSUserDefaults.standardUserDefaults().setValue(nil, forKey: dbHostKey)
+        UserDefaults.standard.setValue(nil, forKey: dbHostKey)
         AppState.locationDbHost = nil
     }
     
     static func deleteDbHostProtocol() {
-        NSUserDefaults.standardUserDefaults().setValue(nil, forKey: dbHostProtocolKey)
+        UserDefaults.standard.setValue(nil, forKey: dbHostProtocolKey)
         AppState.locationDbHostProtocol = nil
     }
 }

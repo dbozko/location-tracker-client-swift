@@ -57,10 +57,10 @@ class PlaceDoc: NSObject {
     
     func toDictionary() -> [String:AnyObject] {
         var dict:[String:AnyObject] = [String:AnyObject]();
-        dict["type"] = "Feature"
-        dict["created_at"] = self.timestamp
-        dict["geometry"] = self.geometry!.toDictionary()
-        dict["name"] = self.name
+        dict["type"] = "Feature" as AnyObject
+        dict["created_at"] = self.timestamp as AnyObject
+        dict["geometry"] = self.geometry!.toDictionary() as AnyObject
+        dict["name"] = self.name as AnyObject
         return dict
     }
 }

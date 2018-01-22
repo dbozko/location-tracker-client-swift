@@ -16,11 +16,11 @@ class MapKitMapDelegate: NSObject, MapDelegate, MKMapViewDelegate {
     
     static let mapDefaultStyleId = "Standard"
     static let mapStyleIds = ["Standard","Satellite","Satellite Flyover","Hybrid","Hybrid Flyover"]
-    static let mapStyleTypes: [String:MKMapType] = ["Standard":MKMapType.Standard,
-                                                    "Satellite":MKMapType.Satellite,
-                                                    "Satellite Flyover":MKMapType.SatelliteFlyover,
-                                                    "Hybrid":MKMapType.Hybrid,
-                                                    "Hybrid Flyover":MKMapType.HybridFlyover]
+    static let mapStyleTypes: [String:MKMapType] = ["Standard":MKMapType.standard,
+                                                    "Satellite":MKMapType.satellite,
+                                                    "Satellite Flyover":MKMapType.satelliteFlyover,
+                                                    "Hybrid":MKMapType.hybrid,
+                                                    "Hybrid Flyover":MKMapType.hybridFlyover]
     
     init(mapView: MKMapView) {
         self.mapView = mapView
@@ -60,36 +60,36 @@ class MapKitMapDelegate: NSObject, MapDelegate, MKMapViewDelegate {
     func drawPath(coordinates: [CLLocationCoordinate2D]) {
         // remove polyline if one exists
         if (self.polyline != nil) {
-            self.mapView.removeOverlay(self.polyline!)
+            self.mapView.remove(self.polyline!)
         }
         // create and add new polyline
         var mutableCoordinates = coordinates;
         self.polyline = MKPolyline(coordinates: &mutableCoordinates, count: coordinates.count)
-        self.mapView.addOverlay(self.polyline!)
+        self.mapView.add(self.polyline!)
     }
     
     func erasePath() {
         // remove polyline if one exists
         if (self.polyline != nil) {
-            self.mapView.removeOverlay(self.polyline!)
+            self.mapView.remove(self.polyline!)
             self.polyline = nil
         }
     }
     
-    func drawRadius(coordinate: CLLocationCoordinate2D, radiusMeters: CLLocationDistance) {
+    func drawRadius(centerCoordinate coordinate: CLLocationCoordinate2D, radiusMeters: CLLocationDistance) {
         // remove circle if one exists
         if (self.circle != nil) {
-            self.mapView.removeOverlay(self.circle!)
+            self.mapView.remove(self.circle!)
         }
         // create and add new polyline
-        self.circle = MKCircle(centerCoordinate: coordinate, radius: radiusMeters)
-        self.mapView.addOverlay(self.circle!)
+        self.circle = MKCircle(center: coordinate, radius: radiusMeters)
+        self.mapView.add(self.circle!)
     }
     
     func eraseRadius() {
         // remove circle if one exists
         if (self.circle != nil) {
-            self.mapView.removeOverlay(self.circle!)
+            self.mapView.remove(self.circle!)
             self.circle = nil
         }
     }
@@ -104,14 +104,14 @@ class MapKitMapDelegate: NSObject, MapDelegate, MKMapViewDelegate {
     func mapView(mapView: MKMapView, rendererForOverlay overlay: MKOverlay) -> MKOverlayRenderer {
         if (overlay === self.polyline) {
             let polylineRenderer = MKPolylineRenderer(overlay: overlay)
-            polylineRenderer.strokeColor = UIColor.blueColor()
+            polylineRenderer.strokeColor = UIColor.blue
             polylineRenderer.lineWidth = 2
             return polylineRenderer
         }
         else {
             let cirlceRenderer = MKCircleRenderer(overlay: overlay)
-            cirlceRenderer.strokeColor = UIColor.greenColor()
-            cirlceRenderer.fillColor = UIColor.greenColor().colorWithAlphaComponent(0.15)
+            cirlceRenderer.strokeColor = UIColor.green
+            cirlceRenderer.fillColor = UIColor.green.withAlphaComponent(0.15)
             cirlceRenderer.lineWidth = 2
             return cirlceRenderer
         }
@@ -122,7 +122,7 @@ class MapKitMapDelegate: NSObject, MapDelegate, MKMapViewDelegate {
             return nil
         }
         let reuseIdentifier = "PinAnnotation"
-        var pinAnnotation: MKPinAnnotationView? = self.mapView.dequeueReusableAnnotationViewWithIdentifier(reuseIdentifier) as? MKPinAnnotationView
+        var pinAnnotation: MKPinAnnotationView? = self.mapView.dequeueReusableAnnotationView(withIdentifier: reuseIdentifier) as? MKPinAnnotationView
         if(pinAnnotation == nil) {
             pinAnnotation = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseIdentifier)
         }

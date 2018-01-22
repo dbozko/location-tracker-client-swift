@@ -17,11 +17,17 @@ class LocationDoc: NSObject {
     init(docId: String?, latitude: Double, longitude: Double, username: String, sessionId: String?, timestamp: NSDate, background: Bool?) {
         self.docId = docId
         self.geometry = Geometry(latitude: latitude, longitude: longitude)
-        self.properties = Dictionary<String,String>()
-        self.properties["username"] = username
-        self.properties["session_id"] = sessionId
-        self.properties["timestamp"] = (NSDate().timeIntervalSince1970 * 1000)
-        self.properties["background"] = (background == nil ? false : background)
+        self.properties = Dictionary<String,String>() as [String : AnyObject]
+        self.properties["username"] = username as AnyObject
+        self.properties["session_id"] = sessionId as AnyObject
+        self.properties["timestamp"] = (NSDate().timeIntervalSince1970 * 1000 as AnyObject)
+        //self.properties["background"] = (background == nil ? false : background)
+        if (background == nil) {
+            self.properties["background"] = false as AnyObject
+        }
+        else {
+            self.properties["background"] = background as AnyObject
+        }
         //
         super.init()
     }
@@ -47,10 +53,10 @@ class LocationDoc: NSObject {
     
     func toDictionary() -> [String:AnyObject] {
         var dict:[String:AnyObject] = [String:AnyObject]();
-        dict["type"] = "Feature"
+        dict["type"] = "Feature" as AnyObject
         dict["created_at"] = self.properties["timestamp"]
-        dict["geometry"] = self.geometry!.toDictionary()
-        dict["properties"] = self.properties
+        dict["geometry"] = self.geometry!.toDictionary() as AnyObject
+        dict["properties"] = self.properties as AnyObject
         return dict
     }
 }

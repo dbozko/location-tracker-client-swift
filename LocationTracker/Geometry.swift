@@ -21,8 +21,8 @@ class Geometry: NSObject {
     
     func toDictionary() -> [String:AnyObject] {
         var dict:[String:AnyObject] = [String:AnyObject]();
-        dict["type"] = "Point"
-        dict["coordinates"] = [self.longitude,self.latitude]
+        dict["type"] = "Point" as AnyObject
+        dict["coordinates"] = [self.longitude,self.latitude] as AnyObject
         return dict
     }
 }

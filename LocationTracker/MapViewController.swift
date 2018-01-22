@@ -55,7 +55,7 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
         loadLocationDocsFromDatastore()
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         // initialize the map provider (or reset if map type changed in settings)
@@ -63,27 +63,27 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
         
         // Sync locations when we start up
         // This will pull the 100 most recent locations from Cloudant
-        syncLocations(.Pull)
+        syncLocations(direction: .Pull)
     }
     
-    override func viewDidAppear(animated: Bool) {
+    override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
         // reset the zoom and download offline maps if there are docs
         if (self.locationDocs.count > 0) {
             self.resetZoom = true
-            self.resetMapZoom(self.locationDocs.last!);
+            self.resetMapZoom(lastLocationDoc: self.locationDocs.last!);
         }
         
         // subscribe to locations
-        LocationMonitor.instance.addDelegate(self)
+        LocationMonitor.instance.addDelegate(delegate: self)
     }
     
-    override func viewWillDisappear(animated: Bool) {
+    override func viewWillDisappear(_ animated: Bool) {
         // user logged out
         if (AppState.username == nil) {
             // stop monitoring locations
-            LocationMonitor.instance.removeDelegate(self)
+            LocationMonitor.instance.removeDelegate(delegate: self)
             // clear datastores
             do {
                 try datastoreManager!.deleteDatastoreNamed(locationDatastoreName)
@@ -100,7 +100,7 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
         }
     }
     
-    override func viewDidDisappear(animated: Bool) {
+    override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated);
     }
 
@@ -112,11 +112,11 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
     
     @IBAction func logoutButtonPressed() {
         UsernamePasswordStore.deleteUsernamePassword()
-        self.navigationController?.popViewControllerAnimated(true)
+        self.navigationController?.popViewController(animated: true)
     }
     
     @IBAction func settingsButtonPressed() {
-        self.performSegueWithIdentifier("ShowMapSettings", sender: self)
+        self.performSegue(withIdentifier: "ShowMapSettings", sender: self)
     }
     
     // MARK: Map Provider
@@ -144,7 +144,7 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
                 self.removeAllLocationPins()
             }
             self.mapDelegate = MapKitMapDelegate(mapView: self.mapView!)
-            self.mapView?.hidden = false
+            self.mapView?.isHidden = false
             if (previousMapDelegate) {
                 // if the map provider changed then add all pins to the new map provider
                 self.addAllLocationPins()
@@ -152,14 +152,14 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
             }
         }
         // set style every time
-        self.mapDelegate?.setStyle(AppState.mapStyleId)
+        self.mapDelegate?.setStyle(styleId: AppState.mapStyleId)
     }
     
     func resetMapZoom(lastLocationDoc: LocationDoc) {
         if (self.resetZoom) {
             self.resetZoom = false
             let coordinate: CLLocationCoordinate2D  = CLLocationCoordinate2D(latitude: lastLocationDoc.geometry!.latitude, longitude: lastLocationDoc.geometry!.longitude)
-            self.mapDelegate?.centerAndZoom(coordinate, radiusMeters:AppConstants.initialMapZoomRadiusMiles*AppConstants.metersPerMile, animated:true)
+            self.mapDelegate?.centerAndZoom(centerCoordinate: coordinate, radiusMeters:AppConstants.initialMapZoomRadiusMiles*AppConstants.metersPerMile, animated:true)
         }
     }
     
@@ -175,45 +175,45 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
         // create location document
         let locationDoc = LocationDoc(docId: nil, latitude: location.coordinate.latitude, longitude:location.coordinate.longitude, username:AppState.username!, sessionId: AppState.sessionId, timestamp: NSDate(), background: inBackground)
         // add location to map
-        self.addLocation(locationDoc, drawPath: true, drawRadius: true)
+        self.addLocation(locationDoc: locationDoc, drawPath: true, drawRadius: true)
         // reset map zoom
-        self.resetMapZoom(locationDoc)
+        self.resetMapZoom(lastLocationDoc: locationDoc)
         // save location to datastore
-        if (createLocationDoc(locationDoc)) {
-            syncLocations(.Push)
+        if (createLocationDoc(locationDoc: locationDoc)) {
+            syncLocations(direction: .Push)
         }
         // sync places based on latest location
-        self.getPlaces(locationDoc)
+        self.getPlaces(lastLocation: locationDoc)
     }
     
     // MARK: Map Locations
     
     func addLocation(locationDoc: LocationDoc, drawPath: Bool, drawRadius: Bool) {
         self.locationDocs.append(locationDoc)
-        self.addLocationPin(locationDoc, title: "\(self.locationDocs.count)", drawPath: drawPath, drawRadius: drawRadius)
+        self.addLocationPin(locationDoc: locationDoc, title: "\(self.locationDocs.count)", drawPath: drawPath, drawRadius: drawRadius)
     }
     
     func addLocationPin(locationDoc: LocationDoc, title: String, drawPath: Bool, drawRadius: Bool) {
         if (self.mapDelegate != nil) {
             let pin = self.mapDelegate!.getPin(
-                CLLocationCoordinate2DMake(locationDoc.geometry!.latitude, locationDoc.geometry!.longitude),
+                coordinate: CLLocationCoordinate2DMake(locationDoc.geometry!.latitude, locationDoc.geometry!.longitude),
                 title: title,
-                color: UIColor.blueColor()
+                color: UIColor.blue
             )
             self.locationPins.append(pin)
-            self.mapDelegate!.addPin(pin)
+            self.mapDelegate!.addPin(pin: pin)
             if (drawPath) {
                 self.drawLocationPath()
             }
             if (drawRadius) {
-                self.drawLocationRadius(locationDoc)
+                self.drawLocationRadius(locationDoc: locationDoc)
             }
         }
     }
     
     func addAllLocationPins() {
-        for (index,locationDoc) in self.locationDocs.enumerate() {
-            self.addLocationPin(locationDoc, title: "\(index+1)" , drawPath: false, drawRadius: false)
+        for (index,locationDoc) in self.locationDocs.enumerated() {
+            self.addLocationPin(locationDoc: locationDoc, title: "\(index+1)" , drawPath: false, drawRadius: false)
         }
         self.drawLocationPath()
     }
@@ -227,7 +227,7 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
         self.locationPins.removeAll()
         self.mapDelegate?.eraseRadius()
         self.mapDelegate?.erasePath()
-        self.mapDelegate?.removePins(locationPins)
+        self.mapDelegate?.removePins(pins: locationPins)
     }
     
     func drawLocationPath() {
@@ -236,11 +236,11 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
         for pin: MapPin in self.locationPins {
             coordinates.append(pin.coordinate)
         }
-        self.mapDelegate?.drawPath(coordinates)
+        self.mapDelegate?.drawPath(coordinates: coordinates)
     }
     
     func drawLocationRadius(locationDoc:LocationDoc) {
-        self.mapDelegate?.drawRadius(CLLocationCoordinate2DMake(locationDoc.geometry!.latitude, locationDoc.geometry!.longitude), radiusMeters: AppConstants.placeRadiusMeters)
+        self.mapDelegate?.drawRadius(centerCoordinate: CLLocationCoordinate2DMake(locationDoc.geometry!.latitude, locationDoc.geometry!.longitude), radiusMeters: AppConstants.placeRadiusMeters)
     }
     
     // MARK: Map Places
@@ -255,25 +255,25 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
         }
         if (placeExists == false) {
             self.placeDocs.append(placeDoc)
-            self.addPlacePin(placeDoc)
+            self.addPlacePin(placeDoc: placeDoc)
         }
     }
     
     func addPlacePin(placeDoc: PlaceDoc) {
         if (self.mapDelegate != nil) {
             let pin = self.mapDelegate!.getPin(
-                CLLocationCoordinate2DMake(placeDoc.geometry!.latitude, placeDoc.geometry!.longitude),
+                coordinate: CLLocationCoordinate2DMake(placeDoc.geometry!.latitude, placeDoc.geometry!.longitude),
                 title: placeDoc.name!,
-                color: UIColor.greenColor()
+                color: UIColor.green
             )
             self.placePins.append(pin)
-            self.mapDelegate!.addPin(pin)
+            self.mapDelegate!.addPin(pin: pin)
         }
     }
     
     func addAllPlacePins() {
         for placeDoc: PlaceDoc in self.placeDocs {
-            self.addPlacePin(placeDoc)
+            self.addPlacePin(placeDoc: placeDoc)
         }
     }
     
@@ -284,15 +284,15 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
     
     func removeAllPlacePins() {
         self.placePins.removeAll()
-        self.mapDelegate?.removePins(self.placePins)
+        self.mapDelegate?.removePins(pins: self.placePins)
     }
     
     // MARK: Datastore Manager
     
     func initDatastoreManager() {
-        let fileManager = NSFileManager.defaultManager()
-        let documentsDir = fileManager.URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask).last!
-        let storeURL = documentsDir.URLByAppendingPathComponent("locationtracker")
+        let fileManager = FileManager.default
+        let documentsDir = fileManager.urls(for: .documentDirectory, in: .userDomainMask).last!
+        let storeURL = documentsDir.appendingPathComponent("locationtracker")
         let path = storeURL.path
         do {
             datastoreManager = try CDTDatastoreManager(directory: path)
@@ -333,9 +333,9 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
             }
         }
         let rev = CDTDocumentRevision(docId: placeDoc.docId)
-        rev.body = NSMutableDictionary(dictionary:placeDoc.toDictionary())
+        rev?.body = NSMutableDictionary(dictionary:placeDoc.toDictionary())
         do {
-            try placeDatastore!.createDocumentFromRevision(rev)
+            try placeDatastore!.createDocument(from: rev)
         }
         catch {
             print("Error creating place: \(error)")
@@ -352,11 +352,12 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
             print("Failed to query for places")
             return
         }
-        dispatch_async(dispatch_get_main_queue(), {
+        DispatchQueue.main.async(execute: {
+        //dispatch_async(dispatch_get_main_queue(), {
             self.removeAllPlaces()
-            result!.enumerateObjectsUsingBlock({ (doc, idx, stop) -> Void in
-                if let placeDoc = PlaceDoc(aDoc: doc) {
-                    self.addPlace(placeDoc)
+            result!.enumerateObjects({ (doc, idx, stop) -> Void in
+                if let placeDoc = PlaceDoc(aDoc: doc!) {
+                    self.addPlace(placeDoc: placeDoc)
                 }
             })
         })
@@ -364,22 +365,22 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
     
     func getPlaces(lastLocation: LocationDoc) {
         let url = NSURL(string: "\(AppConstants.baseUrl)/api/places?lat=\(lastLocation.geometry!.latitude)&lon=\(lastLocation.geometry!.longitude)&radius=\(AppConstants.placeRadiusMeters)&relation=contains&nearest=true&include_docs=true")
-        let session = NSURLSession.sharedSession()
-        let request = NSMutableURLRequest(URL: url!)
+        let session = URLSession.shared
+        let request = NSMutableURLRequest(url: url! as URL)
         request.addValue("application/json", forHTTPHeaderField:"Content-Type")
         request.addValue("application/json", forHTTPHeaderField:"Accepts")
-        request.HTTPMethod = "GET"
+        request.httpMethod = "GET"
         //
-        let task = session.dataTaskWithRequest(request) {
-            (let data, let response, let error) in
-            NSOperationQueue.mainQueue().addOperationWithBlock {
-                guard let _:NSData = data, let _:NSURLResponse = response where error == nil else {
+        let task = session.dataTask(with: request as URLRequest) {
+            (data, response, error) in
+            OperationQueue.main.addOperation {
+                guard let _:NSData = data as! NSData, let _:URLResponse = response, error == nil else {
                     // fail silently
                     return
                 }
                 var dict: NSDictionary!
                 do {
-                    dict = try NSJSONSerialization.JSONObjectWithData(data!, options:[]) as? NSDictionary
+                    dict = try JSONSerialization.jsonObject(with: data!, options:[]) as? NSDictionary
                 }
                 catch {
                     print(error)
@@ -388,8 +389,8 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
                     if let rows = dict["rows"] as? [[String:AnyObject]] {
                         for row in rows {
                             if let placeDoc = PlaceDoc(aDict: row) {
-                                self.addPlace(placeDoc)
-                                self.createPlaceDoc(placeDoc)
+                                self.addPlace(placeDoc: placeDoc)
+                                self.createPlaceDoc(placeDoc: placeDoc)
                             }
                         }
                     }
@@ -430,9 +431,9 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
             }
         }
         let rev = CDTDocumentRevision(docId: locationDoc.docId)
-        rev.body = NSMutableDictionary(dictionary:locationDoc.toDictionary())
+        rev?.body = NSMutableDictionary(dictionary:locationDoc.toDictionary())
         do {
-            try locationDatastore!.createDocumentFromRevision(rev)
+            try locationDatastore!.createDocument(from: rev)
         }
         catch {
             print("Error creating location: \(error)")
@@ -447,7 +448,8 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
             print("Failed to query for locations")
             return
         }
-        dispatch_async(dispatch_get_main_queue(), {
+        DispatchQueue.main.async(execute: {
+        //dispatch_async(dispatch_get_main_queue(), {
             self.removeAllLocations()
             // we are loading the documents from most recent to least recent
             // we want our array to be in the oppsite order
@@ -455,12 +457,12 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
             // here we enumerate the documents and add them to a local array in reverse order
             // then we loop through that local array and add them one by one to the map
             var docs: [CDTDocumentRevision] = []
-            result!.enumerateObjectsUsingBlock({ (doc, idx, stop) -> Void in
-                docs.insert(doc, atIndex: 0)
+            result!.enumerateObjects({ (doc, idx, stop) -> Void in
+                docs.insert(doc!, at: 0)
             })
             for doc in docs {
                 if let locationDoc = LocationDoc(aDoc: doc) {
-                    self.addLocation(locationDoc, drawPath: false, drawRadius: false)
+                    self.addLocation(locationDoc: locationDoc, drawPath: false, drawRadius: false)
                 }
             }
             self.drawLocationPath()
@@ -480,7 +482,8 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
     
     // Push or pull local data to or from the central cloud.
     func syncLocations(direction: SyncDirection) {
-        dispatch_async(dispatch_get_main_queue(), {
+        DispatchQueue.main.async(execute: {
+        //dispatch_async(dispatch_get_main_queue(), {
             let existingReplication = self.locationReplications[direction]
             guard existingReplication == nil else {
                 print("Ignore \(direction) replication; already running")
@@ -491,13 +494,13 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
             let factory = CDTReplicatorFactory(datastoreManager: self.datastoreManager)
             
             let job = (direction == .Push)
-                ? CDTPushReplication(source: self.locationDatastore!, target: self.locationCloudantURL())
-                : CDTPullReplication(source: self.locationCloudantURL(), target: self.locationDatastore!)
-            job.addInterceptor(self)
+                ? CDTPushReplication(source: self.locationDatastore!, target: self.locationCloudantURL() as URL!)
+                : CDTPullReplication(source: self.locationCloudantURL() as URL!, target: self.locationDatastore!)
+            job.add(self)
             
             do {
                 // Ready: Create the replication job.
-                self.locationReplications[direction] = try factory.oneWay(job)
+                self.locationReplications[direction] = try factory?.oneWay(job)
                 
                 // Set: Assign myself as the replication delegate.
                 self.locationReplications[direction]!.delegate = self
@@ -519,9 +522,9 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
     // Intercept HTTP requests and set the User-Agent header.
     func interceptRequestInContext(context: CDTHTTPInterceptorContext)
         -> CDTHTTPInterceptorContext {
-            let info = NSBundle.mainBundle().infoDictionary!
+            let info = Bundle.main.infoDictionary!
             let appVer = info["CFBundleShortVersionString"]
-            let osVer = NSProcessInfo().operatingSystemVersionString
+            let osVer = ProcessInfo().operatingSystemVersionString
             let ua = "Location Tracker/\(appVer) (iOS \(osVer)"
             context.request.setValue(ua, forHTTPHeaderField: "User-Agent")
             return context
@@ -543,16 +546,17 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
                 loadLocationDocsFromDatastore()
             }
         }
-        clearReplicator(replicator)
+        clearReplicator(replicator: replicator)
     }
     
     func replicatorDidError(replicator: CDTReplicator!, info:NSError!) {
         print("Replicator error \(replicator) \(info)")
-        clearReplicator(replicator)
+        clearReplicator(replicator: replicator)
     }
     
     func clearReplicator(replicator: CDTReplicator!) {
-        dispatch_async(dispatch_get_main_queue(), {
+        DispatchQueue.main.async(execute: {
+        //dispatch_async(dispatch_get_main_queue(), {
             if (replicator == self.locationReplications[.Push] || replicator == self.locationReplications[.Pull]) {
                 // Determine the replication direction, given the replicator argument.
                 let direction = (replicator == self.locationReplications[.Push])
@@ -562,7 +566,7 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
                 self.locationReplications[direction] = nil
                 if (self.locationReplicationsPending[direction] == true) {
                     self.locationReplicationsPending[direction] = false
-                    self.syncLocations(direction)
+                    self.syncLocations(direction: direction)
                 }
             }
         })
