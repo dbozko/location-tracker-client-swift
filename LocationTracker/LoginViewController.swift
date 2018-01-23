@@ -54,11 +54,11 @@ class LoginViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
-    @IBAction func loginButtonPressed(sender: UIButton) {
+    @IBAction func loginButtonPressed(_ sender: UIButton) {
         self.login(username: self.usernameTextField.text!, password: self.passwordTextField.text!)
     }
     
-    @IBAction func registerButtonPressed(sender: UIButton) {
+    @IBAction func registerButtonPressed(_ sender: UIButton) {
         self.performSegue(withIdentifier: "ShowRegisterViewController", sender: self)
     }
     
@@ -73,9 +73,9 @@ class LoginViewController: UIViewController {
         request.httpBody = self.getLoginHttpBody(username: username, password: password) as Data
         //
         let task = session.dataTask(with: request as URLRequest) {
-            ( data, response, error) in
-            OperationQueue.main.addOperation {
-                guard let _:NSData = data as! NSData, let _:URLResponse = response, error == nil else {
+            (data, response, error) in
+            OperationQueue.main.addOperation{
+                guard let _:NSData = data as NSData?, let _:URLResponse = response, error == nil else {
                     self.hideActivityIndicatory()
                     self.showLoginErrorDialog()
                     return

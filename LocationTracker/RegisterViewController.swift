@@ -24,7 +24,7 @@ class RegisterViewController: UIViewController {
         super.didReceiveMemoryWarning()
     }
     
-    @IBAction func registerButtonPressed(sender: UIButton) {
+    @IBAction func registerButtonPressed(_ sender: UIButton) {
         self.register(username: self.usernameTextField.text!, password: self.passwordTextField.text!)
     }
 
@@ -96,8 +96,8 @@ class RegisterViewController: UIViewController {
         //
         let task = session.dataTask(with: request as URLRequest) {
             (data, response, error) in
-            OperationQueue.main.addOperation {
-                guard let _:NSData = data as! NSData, let _:URLResponse = response, error == nil else {
+            OperationQueue.main.addOperation{
+                guard let _:NSData = data as NSData?, let _:URLResponse = response, error == nil else {
                     self.hideActivityIndicatory()
                     self.showLoginErrorDialog()
                     return

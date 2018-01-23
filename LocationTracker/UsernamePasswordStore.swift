@@ -17,7 +17,7 @@ struct UsernamePasswordStore {
     // MARK: Save Members
     
     static func saveUsername(username: String) {
-        UserDefaults.setValue(username, forKey: usernameKey)
+        UserDefaults.standard.setValue(username, forKey: usernameKey)
         AppState.username = username
     }
     

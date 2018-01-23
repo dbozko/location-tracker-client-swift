@@ -150,7 +150,7 @@
                                 </constraints>
                                 <state key="normal" title="Don't have an account? Tap here to register."/>
                                 <connections>
-                                    <action selector="registerButtonPressed:" destination="m5H-M2-6TS" eventType="touchUpInside" id="5EV-YQ-Cyp"/>
+                                    <action selector="registerButtonPressed:" destination="m5H-M2-6TS" eventType="touchUpInside" id="wIg-GP-GQP"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -305,6 +305,6 @@
         </scene>
     </scenes>
     <inferredMetricsTieBreakers>
-        <segue reference="0d2-hw-38x"/>
+        <segue reference="tzE-VL-4MG"/>
     </inferredMetricsTieBreakers>
 </document>

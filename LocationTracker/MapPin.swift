@@ -11,7 +11,7 @@ import UIKit
 
 class MapPin : NSObject     {
     
-    var coordinate: CLLocationCoordinate2D
+    @objc var coordinate: CLLocationCoordinate2D
     var title: String?
     var color: UIColor?
     
