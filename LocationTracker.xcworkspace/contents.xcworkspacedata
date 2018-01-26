@@ -2,9 +2,12 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:LocationTracker.xcodeproj">
+      location = "group:/Users/dbozko/location-tracker-client-swift/LocationTracker.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:Pods/Pods.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:LocationTracker.xcodeproj">
    </FileRef>
 </Workspace>

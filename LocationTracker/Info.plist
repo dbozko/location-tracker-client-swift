@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>Loc Tracker</string>
+	<string>Corkboard</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -21,7 +21,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.0.0</string>
+	<string>1.0.3</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -29,8 +29,10 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>The Location Tracker will track your location at all times. It will track "significant changes" while running in the background. See Apple's documentation for more information.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>The Location Tracker will track your location at all times. It will track &quot;significant changes&quot; while running in the background. See Apple&apos;s documentation for more information.</string>
+	<string>The Location Tracker will track your location at all times. It will track "significant changes" while running in the background. See Apple's documentation for more information.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>The Location Tracker will only track your location while running in the foreground.</string>
 	<key>UILaunchStoryboardName</key>

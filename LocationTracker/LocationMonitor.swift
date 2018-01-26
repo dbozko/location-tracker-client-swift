@@ -151,7 +151,7 @@ class LocationMonitor: NSObject, CLLocationManagerDelegate {
 
     // MARK: CLLocationManagerDelegate members
     
-    func locationManager(manager: CLLocationManager, didFailWithError error: NSError) {
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         if ((self.locationManagerEnabled || self.locationManagerEnabledFiredSinceDelegate == false) && self.lastLocation == nil) {
             self.locationManagerEnabledFiredSinceDelegate = true;
             self.locationManagerEnabled = false;
@@ -160,7 +160,7 @@ class LocationMonitor: NSObject, CLLocationManagerDelegate {
         }
     }
     
-    func locationManager(manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         if (self.locationManagerEnabled == false || self.locationManagerEnabledFiredSinceDelegate == false) {
             // if we received a location and delegates haven't been notified that
             // the location manager is enabled then we notify them now

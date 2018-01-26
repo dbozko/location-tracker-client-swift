@@ -39,6 +39,11 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // Transperent navigation controller
+        self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
+        self.navigationController?.navigationBar.shadowImage = UIImage()
+        self.navigationController?.navigationBar.isTranslucent = true
+        
         // initialize datastore manager
         initDatastoreManager();
         
@@ -530,15 +535,15 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
             return context
     }
     
-    func replicatorDidChangeState(replicator: CDTReplicator!) {
+    func replicatorDidChangeState(_ replicator: CDTReplicator!) {
         // The new state is in replicator.state.
     }
     
-    func replicatorDidChangeProgress(replicator: CDTReplicator!) {
+    func replicatorDidChangeProgress(_ replicator: CDTReplicator!) {
         // See replicator.changesProcessed and replicator.changesTotal for progress data.
     }
     
-    func replicatorDidComplete(replicator: CDTReplicator!) {
+    func replicatorDidComplete(_ replicator: CDTReplicator!) {
         // if location replicator and pull OR place replicator and pull
         if (replicator == locationReplications[.Pull]) {
             if (replicator.changesProcessed > 0) {
@@ -549,7 +554,7 @@ class MapViewController: UIViewController, LocationMonitorDelegate, CDTHTTPInter
         clearReplicator(replicator: replicator)
     }
     
-    func replicatorDidError(replicator: CDTReplicator!, info:NSError!) {
+    func replicatorDidError(_ replicator: CDTReplicator!, info: Error!) {
         print("Replicator error \(replicator) \(info)")
         clearReplicator(replicator: replicator)
     }

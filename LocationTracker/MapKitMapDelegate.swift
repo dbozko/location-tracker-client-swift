@@ -101,7 +101,7 @@ class MapKitMapDelegate: NSObject, MapDelegate, MKMapViewDelegate {
     
     // MARK: MKMapViewDelegate Members
     
-    func mapView(mapView: MKMapView, rendererForOverlay overlay: MKOverlay) -> MKOverlayRenderer {
+    func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
         if (overlay === self.polyline) {
             let polylineRenderer = MKPolylineRenderer(overlay: overlay)
             polylineRenderer.strokeColor = UIColor.blue
@@ -117,7 +117,7 @@ class MapKitMapDelegate: NSObject, MapDelegate, MKMapViewDelegate {
         }
     }
     
-    func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         if annotation is MKUserLocation {
             return nil
         }
